@@ -78,6 +78,16 @@ export const CHOREO = {
     { stage: 'void', city: null },
     { stage: 'orch', orch: 'idle', city: null },
   ],
+
+  /* ------------- Espacios cliente: su campus o recinto en 3D ------------- */
+  // `campus` es el modo de CampusStation; 'solution' = el de la solución del paso
+  'cl-hello': [
+    { stage: 'campus', campus: 'intro', city: null },
+    { stage: 'campus', campus: 'overview', city: null },
+  ],
+  'cl-solutions': Array.from({ length: 12 }, () => ({ stage: 'campus', campus: 'solution', city: null })),
+  'cl-plan': [{ stage: 'campus', campus: 'overview', city: null }],
+  'cl-close': [{ stage: 'campus', campus: 'dim', city: null }],
 };
 
 

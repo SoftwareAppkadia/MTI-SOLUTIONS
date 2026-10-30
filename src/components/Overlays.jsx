@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Icon from './icons.jsx';
+import { MeetingsButton } from './Meetings.jsx';
 import { useStore, labelNodes, OVERVIEW, flyTo } from '../store.js';
 import { useT, useSolutions, useIndustries, useCapabilities } from '../i18n.js';
 import { LAYERS } from '../three/datalayers.js';
@@ -161,6 +162,8 @@ export function Intro() {
 
   return (
     <div className={`intro${open ? '' : ' hidden'}`}>
+      {/* reuniones con pre-clientes: arriba a la izquierda, fuera del relato */}
+      <MeetingsButton className="meet-btn--intro" />
       <div className="intro__panel">
         <div className="intro__top">
           <span className="eyebrow">
@@ -320,6 +323,7 @@ export function TopBar() {
           <span className="brand__name">Solutions Explorer</span>
           <span className={`api-dot${apiOnline ? ' on' : ''}`} title={apiOnline ? 'API conectada' : 'Catálogo local'} />
         </div>
+        <MeetingsButton />
       </div>
       <div className="topbar__right">
         {/* Solo aparece si ya se ha estado en el recorrido: devuelve al

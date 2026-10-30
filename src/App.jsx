@@ -27,6 +27,7 @@ import {
   CutFade,
 } from './components/Overlays.jsx';
 import { useStore } from './store.js';
+import { MeetingsPanel } from './components/Meetings.jsx';
 import { loadModels } from './three/assets.js';
 import { loadCityData, buildRealCity } from './three/realcity.js';
 import { buildRealTraffic } from './three/realtraffic.js';
@@ -195,6 +196,7 @@ export default function App() {
         </Suspense>
       )}
       <Intro />
+      <MeetingsPanel />
       <Loader />
     </>
   );

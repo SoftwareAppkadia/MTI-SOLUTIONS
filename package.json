@@ -18,7 +18,10 @@
     "deck:assets": "node scripts/extract-presentation.mjs",
     "deck:globe": "node scripts/build-globe.mjs",
     "deck:check": "node scripts/deck-walk.mjs",
-    "deck:stock": "node scripts/fetch-stock.mjs"
+    "deck:stock": "node scripts/fetch-stock.mjs",
+    "client:campus": "node scripts/fetch-campus.mjs",
+    "client:check": "node scripts/client-walk.mjs",
+    "client:looks": "node scripts/client-looks.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",

@@ -616,3 +616,38 @@ public/models/              modelos 3D (ver CREDITS.md)
 
 Si la API no está levantada, la web sigue funcionando con el catálogo local
 (el punto junto al logo indica si la API está conectada).
+
+## Reuniones · espacios de pre-clientes
+
+Arriba a la izquierda (portada y ciudad; dentro del recorrido, en el índice) el
+botón **Reuniones** abre las propuestas preparadas para cada cliente. Hoy:
+**ESPOL** (Escuela Superior Politécnica del Litoral, Guayaquil).
+
+Cada espacio es un recorrido propio con la estética MTi y el color del cliente:
+
+1. **MTi × cliente**: portada con sus cifras públicas y su campus en 3D
+   (geometría real de OpenStreetMap).
+Al elegir el cliente se elige también **cómo se ve su campus**: Holográfico
+(estética MTi), Satélite (imagen aérea real), Maqueta (blanco arquitectónico) o
+Mapa (cartografía). Se puede cambiar en cualquier momento desde la cabecera.
+
+2. **Lo que proponemos**: ocho soluciones, una por paso (seguridad, consumo
+   energético, sensórica en aulas, eficiencia energética, bosque, centro de
+   mando, IA agentiva, living lab). Consumo, sensórica y eficiencia llevan un
+   **panel en vivo** (datos simulados, rotulados así) sincronizado con el campus:
+   el edificio que se pone rojo en 3D es el que salta en el panel. Primero el campus anima la
+   solución (cámaras y conos de visión, consumo por edificio, sensores del
+   bosque, centro de mando, agentes de IA, laboratorio vivo); a los cinco
+   segundos, o al pulsar «Cómo funciona», entra el esquema entra → MTi → sale con
+   logos reales y los **ejemplos reales de MTi** (proyectos, casos de Agentify AI,
+   demos de la ciudad 3D). Al saltar a un ejemplo, la cabecera devuelve al punto
+   exacto del cliente.
+3. **Cómo empezaríamos**: discovery, piloto, escalado y operación.
+4. **Siguiente paso**: contacto y saltos al resto de MTi.
+
+```bash
+npm run client:campus -- --client=espol   # campus de OSM → public/clients/espol/campus.json
+npm run client:check                      # prueba completa del espacio (con npm run dev)
+```
+
+Para añadir un cliente, ver `docs/GUIA-DEVELOPER.md` (6.3 bis).

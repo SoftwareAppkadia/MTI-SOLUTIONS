@@ -4,6 +4,8 @@ import { localizeDeck, pendingReviews } from '../data/deckLocale.js';
 import { PRESENTATION_ASSETS } from '../data/presentationAssets.js';
 import { localizedChapters, DEFAULT_TRACK } from '../data/tracks.js';
 import { DeckContext, Icon, Photo, MtiIcon } from './parts.jsx';
+import { MeetingsButton } from '../components/Meetings.jsx';
+import { LookSwitch } from '../components/CampusLooks.jsx';
 import { beatFor } from './choreography.js';
 import { useCityDirector } from './cityBridge.js';
 import { BUILD_TAG_POS } from './stage/BuildStation.jsx';
@@ -20,8 +22,11 @@ import AgAgents from './scenes/agentic/AgAgents.jsx';
 import AgCases from './scenes/agentic/AgCases.jsx';
 import AgDelivery from './scenes/agentic/AgDelivery.jsx';
 import AgWhy from './scenes/agentic/AgWhy.jsx';
+import { ClientHello, ClientSolutions, ClientPlan, ClientClose } from './scenes/client/ClientScenes.jsx';
 import './deck.css';
 import './agentic.css';
+import './client.css';
+import './client-live.css';
 
 // el lienzo 3D es lo más pesado del recorrido: se carga aparte
 const DeckStage = lazy(() => import('./stage/DeckStage.jsx'));
@@ -40,10 +45,14 @@ const SCENES = {
   'ag-cases': AgCases,
   'ag-delivery': AgDelivery,
   'ag-why': AgWhy,
+  'cl-hello': ClientHello,
+  'cl-solutions': ClientSolutions,
+  'cl-plan': ClientPlan,
+  'cl-close': ClientClose,
 };
 
 /** Presentación de origen de cada recorrido (panel de fuentes). */
-const TRACK_FILE = { mti: 'MTI_GROUP_Presentation_v.01', agentify: 'MTi_Group_IA_Agentiva_Recort_v.01' };
+const TRACK_FILE = { mti: 'MTI_GROUP_Presentation_v.01', agentify: 'MTi_Group_IA_Agentiva_Recort_v.01', espol: 'Propuesta ESPOL · cifras de espol.edu.ec' };
 
 /* ------------------------------------------------------------------ */
 /* Capacidades del equipo                                              */
@@ -111,6 +120,10 @@ const CHAPTER_THUMB = {
   'ag-cases': 'ag-case-coplegal',
   'ag-delivery': 'ag-case-aspol',
   'ag-why': 'ag-case-sigi',
+  'cl-hello': 'project-nsu',
+  'cl-solutions': 'project-aena',
+  'cl-plan': 'service-integration',
+  'cl-close': 'project-kafd',
 };
 
 /* ================================================================== */
@@ -123,6 +136,11 @@ export default function Deck() {
   const ui = deck.DECK_UI;
   const onMain = track === DEFAULT_TRACK;
   const agUi = deck.AGENTIFY.UI;
+  // espacio de un pre-cliente (panel «Reuniones»)
+  const client = deck.CLIENTS?.[track] ?? null;
+  const trackReturn = useStore((s) => s.deckTrackReturn);
+  const toggleMeetings = useStore((s) => s.toggleMeetings);
+  const campusLook = useStore((s) => s.campusLook);
 
   const chapter = useStore((s) => s.deckChapter);
   const step = useStore((s) => s.deckStep);
@@ -361,6 +379,14 @@ export default function Deck() {
     },
     build: { labels: current.id === 'delivery' ? buildLabels(deck, step - 1, BUILD_TAG_POS) : [] },
     orch: orchProps(deck, current.id, step, sel, beat),
+    campus: client
+      ? {
+          url: client.campus,
+          look: campusLook,
+          lowPower,
+          mode: beat.campus === 'solution' ? client.solutions[step]?.mode ?? 'overview' : beat.campus ?? 'overview',
+        }
+      : null,
     flow: {
       labels: current.id === 'platforms' ? flowLabels(deck) : [],
       agents: deck.AGENTS,
@@ -370,17 +396,28 @@ export default function Deck() {
   };
 
   const needsFallback = !stageOk && current.id === 'world';
-  const brandTitle = onMain ? ui.title : agUi.title;
-  const brandSub = onMain ? ui.subtitle : agUi.subtitle;
+  const brandTitle = client ? client.ui.title : onMain ? ui.title : agUi.title;
+  const brandSub = client ? client.ui.subtitle : onMain ? ui.subtitle : agUi.subtitle;
+
+  // la miga de la cabecera: vuelve a donde se vino (otro recorrido o un cliente);
+  // en un cliente abierto desde «Reuniones», vuelve al panel
+  const returnName = trackReturn ? deck.CLIENTS?.[trackReturn.track]?.ui.title ?? (trackReturn.track === DEFAULT_TRACK ? agUi.backToMti : null) : null;
+  const crumb = returnName
+    ? { label: returnName, title: returnName, go: backToMain }
+    : client
+      ? { label: client.ui.back, title: client.ui.backLong, go: () => toggleMeetings(true) }
+      : !onMain
+        ? { label: agUi.backToMti, title: agUi.backToMtiLong, go: backToMain }
+        : null;
 
   return (
     <DeckContext.Provider value={deck}>
       <div
         ref={root}
-        className={`deck${frozen ? ' deck--still' : ''}${cityLive ? ' deck--city' : ''}`}
+        className={`deck${frozen ? ' deck--still' : ''}${cityLive ? ' deck--city' : ''}${client ? ' deck--client' : ''}`}
         data-chapter={current.id}
         data-track={track}
-        style={{ '--cover': cover }}
+        style={client ? { '--cover': cover, '--cl-navy': client.colors.navy, '--cl-blue': client.colors.blue, '--cl-sky': client.colors.sky } : { '--cover': cover }}
       >
         <div className="deck__bg" aria-hidden="true">
           <span className="deck__glow deck__glow--a" />
@@ -411,20 +448,26 @@ export default function Deck() {
           />
         </main>
 
+        {/* imagen aérea de la vista «Satélite»: atribución obligatoria */}
+        {client && campusLook === 'satellite' && beat.stage === 'campus' && (
+          <p className="cl-attrib">Imagen aérea: Esri, Maxar, Earthstar Geographics · Campus: © OpenStreetMap</p>
+        )}
+
         {/* ---------------- cabecera ---------------- */}
         <header className="deck__top">
           <div className="deck__brand">
             <img src="/brand/logo-mti.png" alt="MTi · Mingo Things" />
+            {client && <img className="deck__brand-client" src={client.logo} alt={client.name} />}
             <span className="deck__brand-name">
               {brandTitle}
               <em>{brandSub}</em>
             </span>
-            {!onMain && (
-              <button className="deck__crumb" onClick={backToMain} title={agUi.backToMtiLong}>
+            {crumb && (
+              <button className="deck__crumb" onClick={crumb.go} title={crumb.title}>
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M19 12H5M11 18l-6-6 6-6" />
                 </svg>
-                <span>{agUi.backToMti}</span>
+                <span>{crumb.label}</span>
               </button>
             )}
           </div>
@@ -449,6 +492,7 @@ export default function Deck() {
           </nav>
 
           <div className="deck__tools">
+            {client && <LookSwitch client={track} />}
             <button className={`deck__tool${paused ? ' active' : ''}`} onClick={togglePause} title={`${paused ? ui.play : ui.pause} (P)`} aria-pressed={paused}>
               <Icon name={paused ? 'play' : 'gauge'} />
             </button>
@@ -496,9 +540,7 @@ export default function Deck() {
           <div className="deck__meta">
             <button className="deck__sources" onClick={toggleSources} title={`${ui.sources} (F)`}>
               <Icon name="doc" />
-              <span>
-                {ui.sourcePage} {pageRanges(current.src)}
-              </span>
+              <span>{client ? new URL(client.web).hostname : `${ui.sourcePage} ${pageRanges(current.src)}`}</span>
             </button>
             <span className="deck__hint">{ui.scrollHint}</span>
           </div>
@@ -689,10 +731,14 @@ function DeckIndex({ deck, track, chapter, onPick, onClose }) {
   // qué recorrido se está mirando en el índice (puede no ser el activo)
   const [view, setView] = useState(track);
   const tracks = [{ id: DEFAULT_TRACK, name: ui.title }, ...deck.SERVICE_TRACKS.map((t) => ({ id: t.id, name: t.name }))];
+  const trackReturn = useStore((s) => s.deckTrackReturn);
+  // el cliente abierto (o del que se viene) también tiene su pestaña
+  const clientId = deck.CLIENTS?.[track] ? track : deck.CLIENTS?.[trackReturn?.track] ? trackReturn.track : null;
+  if (clientId) tracks.unshift({ id: clientId, name: deck.CLIENTS[clientId].ui.title });
   const list = localizedChapters(deck, view);
   const pick = (i, step) => {
     if (view === track) onPick(i, step);
-    else if (view === DEFAULT_TRACK) {
+    else if (view === (trackReturn?.track ?? DEFAULT_TRACK)) {
       backToMain();
       onPick(i, step);
     } else openTrack(view, i, step);
@@ -703,6 +749,7 @@ function DeckIndex({ deck, track, chapter, onPick, onClose }) {
       <div className="dmodal__panel dmodal__panel--wide" data-scrollable>
         <header>
           <h2>{ui.index}</h2>
+          <MeetingsButton className="meet-btn--index" />
           <button onClick={onClose} aria-label={ui.close}>
             ×
           </button>

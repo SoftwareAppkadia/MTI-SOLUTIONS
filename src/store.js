@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { SOLUTIONS as LOCAL, INDUSTRIES, CAPABILITIES, buildMatrix } from './data/solutions.js';
 import { chaptersFor, DEFAULT_TRACK } from './data/tracks.js';
+import { isClientTrack } from './data/clients/index.js';
 
 /** Registro de nodos DOM de las etiquetas 3D (se actualizan fuera de React, por frame). */
 export const labelNodes = new Map();
@@ -169,8 +170,14 @@ export const useStore = create((set, get) => ({
   })(),
   /** Recorrido activo: el corporativo ('mti') o el de una línea de servicio. */
   deckTrack: DEFAULT_TRACK,
-  /** Punto del recorrido corporativo del que se salió hacia otra línea. */
+  /** Punto del recorrido (corporativo o de cliente) del que se salió hacia otro. */
   deckTrackReturn: null,
+  /** Panel «Reuniones» (espacios de pre-clientes) abierto. */
+  meetingsOpen: false,
+  /** Cliente de la reunión en curso (id de CLIENT_SPACES) o null. */
+  clientSpace: null,
+  /** Estilo del campus del cliente: holo · satellite · model · map (se elige al abrir la reunión). */
+  campusLook: 'holo',
   deckChapter: 0,
   deckStep: 0,
   deckPaused: false,
@@ -263,18 +270,29 @@ export const useStore = create((set, get) => ({
       deckSourcesOpen: false,
       deckInfo: null,
     };
-    if (s.deckTrack !== track && s.deckTrack === DEFAULT_TRACK) {
-      patch.deckTrackReturn = { chapter: s.deckChapter, step: s.deckStep, sel: { ...s.deckSel } };
+    // al salir del corporativo o de un espacio de cliente se guarda el punto
+    // exacto: el botón de la cabecera devuelve allí
+    if (s.mode === 'deck' && s.deckTrack !== track && (s.deckTrack === DEFAULT_TRACK || isClientTrack(s.deckTrack))) {
+      patch.deckTrackReturn = { track: s.deckTrack, chapter: s.deckChapter, step: s.deckStep, sel: { ...s.deckSel } };
     }
     set(patch);
     if (s.mode !== 'deck') get().openDeck(c, patch.deckStep);
   },
 
-  /** Vuelve a la presentación corporativa, al punto desde el que se salió. */
+  /** Abre el espacio de un pre-cliente (panel «Reuniones»). */
+  openClient: (id, look) => {
+    set({ clientSpace: id, meetingsOpen: false, deckTrackReturn: null, ...(look ? { campusLook: look } : {}) });
+    get().openTrack(id, 0, 0);
+    set({ mode: 'deck', deckTrackReturn: null });
+  },
+  toggleMeetings: (open) => set({ meetingsOpen: open ?? !get().meetingsOpen }),
+  setCampusLook: (look) => set({ campusLook: look }),
+
+  /** Vuelve al recorrido del que se salió (corporativo o de cliente), al punto exacto. */
   backToMainTrack: () => {
     const r = get().deckTrackReturn;
     set({
-      deckTrack: DEFAULT_TRACK,
+      deckTrack: r?.track ?? DEFAULT_TRACK,
       deckChapter: r?.chapter ?? 0,
       deckStep: r?.step ?? 0,
       deckSel: r?.sel ?? {},

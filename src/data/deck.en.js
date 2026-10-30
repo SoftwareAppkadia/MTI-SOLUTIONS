@@ -9,6 +9,7 @@
  */
 
 import { AGENTIFY_EN } from './agentic.en.js';
+import { ESPOL_EN } from './clients/espol.en.js';
 import { PROJECT_REELS_EN, PROJECT_REELS_UI_EN } from './projectReels.js';
 
 export const DECK_EN = {
@@ -881,6 +882,7 @@ export const DECK_EN = {
   AGENTIFY: AGENTIFY_EN,
   PROJECT_REELS: PROJECT_REELS_EN,
   PROJECT_REELS_UI: PROJECT_REELS_UI_EN,
+  CLIENTS: { espol: ESPOL_EN },
 };
 
 export default DECK_EN;

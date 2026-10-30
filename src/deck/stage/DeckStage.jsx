@@ -7,6 +7,7 @@ import GlobeStation, { globePose } from './GlobeStation.jsx';
 import BuildStation, { buildPose } from './BuildStation.jsx';
 import FlowStation, { flowPose } from './FlowStation.jsx';
 import OrchestratorStation, { orchPose } from './OrchestratorStation.jsx';
+import CampusStation, { campusPose } from './CampusStation.jsx';
 
 /**
  * Lienzo 3D único del recorrido.
@@ -29,7 +30,7 @@ function logoPose(step) {
 
 const VOID_POSE = { position: [6, 4, -40], target: [0, 0, -120] };
 
-function poseFor(station, step, sel, aspect, orch) {
+function poseFor(station, step, sel, aspect, orch, campus) {
   switch (station) {
     case 'logo':
       return logoPose(step);
@@ -41,6 +42,8 @@ function poseFor(station, step, sel, aspect, orch) {
       return flowPose(step, aspect);
     case 'orch':
       return orchPose(orch?.mode, step, aspect);
+    case 'campus':
+      return campusPose(campus?.mode, aspect);
     case 'void':
       return step === 1 ? logoPose(1) : VOID_POSE;
     default:
@@ -49,7 +52,7 @@ function poseFor(station, step, sel, aspect, orch) {
 }
 
 /** La cámara: persigue la pose del paso, con paralaje del puntero. */
-function Rig({ station, chapterId, step, sel, paused, pointer, orch }) {
+function Rig({ station, chapterId, step, sel, paused, pointer, orch, campus }) {
   const { camera, size } = useThree();
   const target = useRef(new THREE.Vector3(0, 0.3, 0));
   const goalP = useMemo(() => new THREE.Vector3(), []);
@@ -62,7 +65,7 @@ function Rig({ station, chapterId, step, sel, paused, pointer, orch }) {
     if (!paused) t.current += dt;
     const aspect = size.width / Math.max(1, size.height);
     const effective = station === 'void' && chapterId === 'opening' ? 'void' : station;
-    const pose = poseFor(effective, step, sel, aspect, orch);
+    const pose = poseFor(effective, step, sel, aspect, orch, campus);
     if (!pose) return;
     goalP.set(...pose.position);
     goalT.set(...pose.target);
@@ -114,6 +117,7 @@ export default function DeckStage({
   build,
   flow,
   orch,
+  campus,
   onContextLost,
 }) {
   const pointer = useRef({ x: 0, y: 0 });
@@ -148,7 +152,7 @@ export default function DeckStage({
   }, []);
 
   const logoPhase = chapterId === 'opening' ? (step === 0 ? 'assemble' : step === 1 ? 'explode' : 'hidden') : 'hidden';
-  const particleOpacity = station === 'globe' ? 0.55 : station === 'logo' ? 0.9 : 0.75;
+  const particleOpacity = station === 'globe' ? 0.55 : station === 'logo' ? 0.9 : station === 'campus' ? 0.35 : 0.75;
 
   return (
     <div className={`deck-stage${station ? ' is-on' : ''}`} aria-hidden="true">
@@ -168,7 +172,7 @@ export default function DeckStage({
           });
         }}
       >
-        <Rig station={station} chapterId={chapterId} step={step} sel={sel} paused={paused} pointer={pointer} orch={orch} />
+        <Rig station={station} chapterId={chapterId} step={step} sel={sel} paused={paused} pointer={pointer} orch={orch} campus={campus} />
         <ParticleField count={lowPower ? 1200 : 2600} paused={paused} opacity={particleOpacity} />
         <DataStreaks count={lowPower ? 40 : 90} paused={paused} opacity={station === 'globe' ? 0.25 : 0.5} />
 
@@ -178,6 +182,7 @@ export default function DeckStage({
           {mounted.has('build') && <BuildStation active={station === 'build'} step={step} paused={paused} {...build} />}
           {mounted.has('flow') && <FlowStation active={station === 'flow'} step={step} paused={paused} {...flow} />}
           {mounted.has('orch') && <OrchestratorStation active={station === 'orch'} step={step} paused={paused} {...orch} />}
+          {mounted.has('campus') && campus?.url && <CampusStation active={station === 'campus'} paused={paused} {...campus} />}
         </Suspense>
       </Canvas>
     </div>

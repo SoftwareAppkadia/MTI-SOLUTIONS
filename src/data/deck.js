@@ -23,6 +23,7 @@
  */
 
 import { AGENTIFY } from './agentic.js';
+import { CLIENT_SPACES } from './clients/index.js';
 import { PROJECT_REELS, PROJECT_REELS_UI } from './projectReels.js';
 
 export const CONTACT = {
@@ -1523,6 +1524,8 @@ export const DECK = {
   AGENTIFY,
   PROJECT_REELS,
   PROJECT_REELS_UI,
+  // espacios de pre-clientes, por id
+  CLIENTS: Object.fromEntries(CLIENT_SPACES.map((c) => [c.id, c])),
 };
 
 export default DECK;

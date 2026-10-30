@@ -211,3 +211,24 @@ Argentina y Camerún).
 Si en algún momento hay que eliminar la dependencia de terceros, cada modelo tiene un
 sustituto primitivo ya programado: al no encontrarse el `.glb`, `assets.js` deja pasar el error
 y la ciudad se dibuja con cajas del tamaño correcto, sin romper la demo.
+
+## Espacios cliente (panel «Reuniones»)
+
+- **Campus Gustavo Galindo (ESPOL)**: geometría real de OpenStreetMap (© colaboradores
+  de OpenStreetMap, [ODbL](https://www.openstreetmap.org/copyright)), descargada con
+  `npm run client:campus` a `public/clients/espol/campus.json`.
+- **Logotipo y sello de ESPOL**: propiedad de la Escuela Superior Politécnica del Litoral,
+  tomados de su web pública ([espol.edu.ec](https://www.espol.edu.ec/es)) y usados solo
+  para identificarla en la propuesta de la reunión. Paleta de colores tomada de su hoja
+  de estilos pública.
+- **Cifras de ESPOL** (estudiantes, profesores, centros, laboratorios, bosque protector):
+  de «ESPOL en cifras», en su web pública.
+- **Vista «Satélite» del campus**: imagen aérea de **Esri World Imagery** (fuentes: Esri,
+  Maxar, Earthstar Geographics y la comunidad de usuarios de SIG). Se pide en directo al
+  elegir ese estilo y no se guarda en el repositorio; la atribución sale en pantalla. Las
+  miniaturas del selector (`public/clients/<id>/looks/`) son capturas de la propia app.
+  **Pendiente de confirmar**: las condiciones de uso comercial de Esri (normalmente
+  requieren una cuenta ArcGIS); si no encajan, se puede cambiar el proveedor en
+  `IMAGERY_URL` (`src/deck/stage/CampusStation.jsx`) por Mapbox Satellite o Google con su clave.
+- **Paneles «en vivo»** (consumo, sensórica, eficiencia): datos **simulados**
+  (`src/deck/stage/campusLive.js`), rotulados como «vista ilustrativa · datos simulados».
